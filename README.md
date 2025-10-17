@@ -19,6 +19,14 @@ Prerequisites:
 
 Installation (project root):
 
+```bash
+# Clone the repository and change into the project directory
+git clone https://github.com/triptorahman/order_fulfillment_system.git
+cd order_fulfillment_system
+```
+
+Then run the Composer / artisan setup commands below:
+
 ```CMD
 composer install
 cp .env.example .env  # or copy/edit .env as needed on Windows
