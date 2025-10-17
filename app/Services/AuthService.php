@@ -1,4 +1,6 @@
 <?php
+// Developer: Md Samiur Rahman | Reviewed: 2025-10-17
+
 namespace App\Services;
 
 use App\Repositories\UserRepository;
