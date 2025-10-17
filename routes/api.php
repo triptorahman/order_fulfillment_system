@@ -34,4 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role:buyer')
         ->name('api.order.pay');
 
+    // Buyers and sellers can list orders (scoped by role inside controller)
+    Route::get('/orders', [OrderController::class, 'index'])->name('api.order.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('api.order.show');
+
 });

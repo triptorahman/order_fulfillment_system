@@ -44,6 +44,41 @@ class OrderRepository
     }
 
     /**
+     * Find an order and eager load its items.
+     *
+     * @param int $id
+     * @return \App\Models\Order|null
+     */
+    public function findWithItems(int $id): ?Order
+    {
+        return $this->model->with('items')->find($id);
+    }
+
+    /**
+     * Get orders belonging to a buyer.
+     *
+     * @param int $buyerId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getOrdersForBuyer(int $buyerId)
+    {
+        return $this->model->where('buyer_id', $buyerId)->with('items')->get();
+    }
+
+    /**
+     * Get orders that include items sold by the given seller.
+     *
+     * @param int $sellerId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getOrdersForSeller(int $sellerId)
+    {
+        return $this->model->whereHas('items', function ($q) use ($sellerId) {
+            $q->where('seller_id', $sellerId);
+        })->with('items')->get();
+    }
+
+    /**
      * Mark a specific order as paid.
      *
      * @param \App\Models\Order $order

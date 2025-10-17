@@ -116,7 +116,18 @@ class OrderService
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      * @throws \InvalidArgumentException
      */
-    public function markOrderAsPaid(int $orderId): Order
+    /**
+     * Mark an order as paid by the given user. Only the buyer who placed the order
+     * may mark it as paid.
+     *
+     * @param int $orderId
+     * @param \App\Models\User $user
+     * @return \App\Models\Order
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \InvalidArgumentException
+     */
+    public function markOrderAsPaid(int $orderId, User $user): Order
     {
         $order = $this->orders->find($orderId);
 
@@ -124,10 +135,66 @@ class OrderService
             throw new ModelNotFoundException("Order with ID {$orderId} not found.");
         }
 
+        // Only the buyer who created the order may mark it as paid
+        if ($user->id !== $order->buyer_id || $user->role !== 'buyer') {
+            throw new InvalidArgumentException('Unauthorized to pay for this order.');
+        }
+
         if ($order->status !== 'pending') {
             throw new InvalidArgumentException("Order {$order->id} is not in pending status.");
         }
 
         return $this->orders->markAsPaid($order);
+    }
+
+    /**
+     * List orders scoped for the given user (buyer -> their orders, seller -> their sales).
+     *
+     * @param \App\Models\User $user
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function listOrdersForUser($user)
+    {
+        if ($user->role === 'buyer') {
+            return $this->orders->getOrdersForBuyer($user->id);
+        }
+
+        if ($user->role === 'seller') {
+            return $this->orders->getOrdersForSeller($user->id);
+        }
+
+        return collect();
+    }
+
+    /**
+     * Get a single order scoped for the user. Throws ModelNotFoundException if not found.
+     *
+     * @param int $orderId
+     * @param \App\Models\User $user
+     * @return \App\Models\Order
+     */
+    public function getOrderForUser(int $orderId, $user): Order
+    {
+        $order = $this->orders->findWithItems($orderId);
+
+        if (! $order) {
+            throw new ModelNotFoundException("Order with ID {$orderId} not found.");
+        }
+
+        // Buyer can access own orders
+        if ($user->role === 'buyer' && $order->buyer_id === $user->id) {
+            return $order;
+        }
+
+        // Seller can access if any item is sold by them
+        if ($user->role === 'seller') {
+            foreach ($order->items as $item) {
+                if ($item->seller_id === $user->id) {
+                    return $order;
+                }
+            }
+        }
+
+        throw new InvalidArgumentException('Unauthorized to view this order.');
     }
 }

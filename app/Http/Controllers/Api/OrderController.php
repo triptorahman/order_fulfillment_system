@@ -6,11 +6,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OrderRequest;
 use App\Services\OrderService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use InvalidArgumentException;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderController extends Controller
 {
+    use AuthorizesRequests;
     protected OrderService $service;
 
     public function __construct(OrderService $service)
@@ -54,6 +59,36 @@ class OrderController extends Controller
     }
 
     /**
+     * List orders for the authenticated user.
+     * Buyers see their orders; sellers see orders containing their sales.
+     */
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        $orders = $this->service->listOrdersForUser($user);
+
+        return response()->json(['data' => $orders], 200);
+    }
+
+    /**
+     * Show a single order if authorized.
+     */
+    public function show(int $orderId)
+    {
+        $user = Auth::user();
+
+        try {
+            $order = $this->service->getOrderForUser($orderId, $user);
+            return response()->json(['data' => $order], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Order not found'], 404);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+    }
+
+    /**
      * Mark an order as paid.
      *
      * @param int $orderId
@@ -64,8 +99,10 @@ class OrderController extends Controller
      */
     public function pay(int $orderId)
     {
+        $user = Auth::user();
+
         try {
-            $order = $this->service->markOrderAsPaid($orderId);
+            $order = $this->service->markOrderAsPaid($orderId, $user);
 
             return response()->json([
                 'message' => 'Order marked as paid successfully.',
