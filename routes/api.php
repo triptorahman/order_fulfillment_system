@@ -1,8 +1,9 @@
 <?php
-// Developer: Md Samiur Rahman | Reviewed: 2025-10-16
+// Developer: Md Samiur Rahman | Reviewed: 2025-10-17
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\OrderController;
 
 
 /**
@@ -23,4 +24,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 Route::middleware('auth:sanctum')->group(function () {
     // Authentication
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.logout');
+    // Orders
+    Route::post('/order', [OrderController::class, 'store']);
 });
