@@ -127,6 +127,20 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'orders' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/orders.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'simulate_email' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/simulate_email.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];
