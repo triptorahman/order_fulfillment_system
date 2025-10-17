@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Services\AuthService;
+use InvalidArgumentException;
 
 /**
  * Class AuthController
@@ -18,6 +18,12 @@ use App\Models\User;
  */
 class AuthController extends Controller
 {
+    protected AuthService $auth;
+
+    public function __construct(AuthService $auth)
+    {
+        $this->auth = $auth;
+    }
     /**
      * Register a new user and return an API token.
      *
@@ -35,18 +41,11 @@ class AuthController extends Controller
             'role' => 'required|in:buyer,seller,admin',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $result = $this->auth->register($validated);
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'user' => $result['user'],
+            'token' => $result['token'],
         ], 201);
     }
 
@@ -64,19 +63,15 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required',
         ]);
-
-        $user = User::where('email', $credentials['email'])->first();
-
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        try {
+            $result = $this->auth->login($credentials);
+            return response()->json([
+                'user' => $result['user'],
+                'token' => $result['token'],
+            ]);
+        } catch (InvalidArgumentException $e) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
     }
 
     /**
@@ -87,10 +82,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->auth->logout($request->user());
 
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ]);
+        return response()->json(['message' => 'Logged out successfully']);
     }
 }
