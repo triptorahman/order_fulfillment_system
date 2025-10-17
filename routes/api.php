@@ -28,5 +28,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Orders - Only buyers can place orders
     Route::post('/order', [OrderController::class, 'store'])
         ->middleware('role:buyer')
-        ->name('api.orders.store');
+        ->name('api.order.store');
+
+    Route::post('/order/{order}/pay', [OrderController::class, 'pay'])
+        ->middleware('role:buyer')
+        ->name('api.order.pay');
+
 });

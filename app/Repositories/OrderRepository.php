@@ -18,4 +18,23 @@ class OrderRepository
         return $this->model->create($data);
     }
 
+    public function find(int $id): ?Order
+    {
+        return $this->model->find($id);
+    }
+
+    /**
+     * Mark a specific order as paid.
+     *
+     * @param \App\Models\Order $order
+     * @return \App\Models\Order
+     */
+    public function markAsPaid(Order $order): Order
+    {
+        $order->status = 'paid';
+        $order->paid_at = now();
+        $order->save();
+
+        return $order;
+    }
 }

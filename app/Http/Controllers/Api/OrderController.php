@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OrderRequest;
+use Illuminate\Http\Request;
 use App\Services\OrderService;
 use InvalidArgumentException;
 use Exception;
@@ -50,6 +51,31 @@ class OrderController extends Controller
                 'message' => 'An unexpected error occurred',
                 'error' => 'Please try again later or contact support'
             ], 500);
+        }
+    }
+
+    /**
+     * Mark an order as paid.
+     *
+     * @param int $orderId
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @example
+     * POST /api/orders/{id}/pay
+     */
+    public function pay(int $orderId)
+    {
+        try {
+            $order = $this->service->markOrderAsPaid($orderId);
+
+            return response()->json([
+                'message' => 'Order marked as paid successfully.',
+                'order' => $order,
+            ], 200);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

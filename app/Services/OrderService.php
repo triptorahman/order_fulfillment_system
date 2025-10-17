@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Class OrderService
@@ -20,6 +21,7 @@ use InvalidArgumentException;
  * - Create order + order_items atomically
  * - Reduce stock
  * - Fire domain event OrderPlaced
+ * - Order Pay for Changing Status
  */
 class OrderService
 {
@@ -103,5 +105,29 @@ class OrderService
         event(new OrderPlaced($order));
 
         return $order;
+    }
+
+    /**
+     * Mark an order as paid.
+     *
+     * @param int $orderId
+     * @return \App\Models\Order
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \InvalidArgumentException
+     */
+    public function markOrderAsPaid(int $orderId): Order
+    {
+        $order = $this->orders->find($orderId);
+
+        if (! $order) {
+            throw new ModelNotFoundException("Order with ID {$orderId} not found.");
+        }
+
+        if ($order->status !== 'pending') {
+            throw new InvalidArgumentException("Order {$order->id} is not in pending status.");
+        }
+
+        return $this->orders->markAsPaid($order);
     }
 }

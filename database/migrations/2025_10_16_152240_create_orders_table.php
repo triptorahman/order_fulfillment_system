@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('buyer_id')->constrained('users')->cascadeOnDelete();
             $table->decimal('total_amount', 12, 2);
             $table->enum('status', ['pending','paid','invoiced','cancelled'])->default('pending');
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
     }
