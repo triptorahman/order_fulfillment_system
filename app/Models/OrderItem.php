@@ -1,5 +1,5 @@
 <?php
-// Developer: Md Samiur Rahman | Reviewed: 2025-10-16
+// Developer: Md Samiur Rahman | Reviewed: 2025-10-17
 
 namespace App\Models;
 
@@ -13,8 +13,14 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'seller_id');
     }
 }
