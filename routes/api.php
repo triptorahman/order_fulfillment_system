@@ -24,6 +24,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 Route::middleware('auth:sanctum')->group(function () {
     // Authentication
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.logout');
-    // Orders
-    Route::post('/order', [OrderController::class, 'store']);
+
+    // Orders - Only buyers can place orders
+    Route::post('/order', [OrderController::class, 'store'])
+        ->middleware('role:buyer')
+        ->name('api.orders.store');
 });

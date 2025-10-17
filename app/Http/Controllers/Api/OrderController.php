@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OrderRequest;
 use App\Services\OrderService;
+use InvalidArgumentException;
+use Exception;
 
 class OrderController extends Controller
 {
@@ -24,10 +26,30 @@ class OrderController extends Controller
      */
     public function store(OrderRequest $request)
     {
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        $order = $this->service->createOrder($data['buyer_id'], $data['items']);
+            $order = $this->service->createOrder($data['buyer_id'], $data['items']);
 
-        return response()->json(['order' => $order], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Order placed successfully',
+                'data' => [
+                    'order' => $order
+                ]
+            ], 201);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order creation failed',
+                'error' => $e->getMessage()
+            ], 400);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => 'Please try again later or contact support'
+            ], 500);
+        }
     }
 }
