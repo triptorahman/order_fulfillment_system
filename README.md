@@ -135,4 +135,68 @@ How to use:
 6. Run requests like `Create Order`, `Pay Order`, `List Orders` using the token in the Authorization header.
 
 
+## Basics Flows
+The following minimal flow shows how to go from authentication to invoice processing.
 
+1) Login (buyer credentials)
+
+	- Request (POST /api/login):
+
+```json
+{
+  "email": "buyer2@example.com",
+  "password": "password"
+}
+```
+
+	- Response: { user, token }
+
+	Use the returned token for Authorization: `Bearer <token>` on subsequent requests.
+
+2) Make an order using Order API
+
+	- Request (POST /api/order) — buyer only
+
+```json
+{
+  "buyer_id": 6,
+  "items": [
+    {
+      "product_id": 2,
+      "quantity": 1
+    },
+    {
+      "product_id": 4,
+      "quantity": 1
+    }
+  ]
+}
+```
+
+	- Response: created order object (201)
+
+3) Payment (mark order as paid)
+
+	- Request (POST /api/order/{order}/pay)
+	- Only the buyer who created the order may call this endpoint.
+
+4) Check Order List
+
+	- Request (GET /api/orders)
+	- Buyers will see only their orders. Sellers will see orders containing their items.
+
+5) View Order Details
+
+	- Request (GET /api/orders/{order})
+
+6) Run artisan process to dispatch invoice generation jobs
+
+```powershell
+php artisan orders:process-invoices
+```
+
+7) Run queue worker to process jobs (GenerateInvoiceJob will create invoice files)
+
+```powershell
+php artisan queue:work
+```
