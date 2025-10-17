@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('total_amount', 12, 2);
             $table->enum('status', ['pending','paid','invoiced','cancelled'])->default('pending');
             $table->timestamp('paid_at')->nullable();
+            $table->timestamp('invoiced_at')->nullable();
             $table->timestamps();
         });
     }

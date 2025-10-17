@@ -37,4 +37,22 @@ class OrderRepository
 
         return $order;
     }
+
+    public function findUninvoicedPaidOrders()
+    {
+        return $this->model->where('status', 'paid')->whereNull('invoiced_at')->get();
+    }
+
+    /**
+     * Mark a specific order as paid.
+     *
+     * @param \App\Models\Order $order
+     * @return void
+     */
+    public function markInvoiced(Order $order)
+    {
+        $order->status = 'invoiced';
+        $order->invoiced_at = now();
+        $order->save();
+    }
 }
