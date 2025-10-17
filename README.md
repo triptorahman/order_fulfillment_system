@@ -15,6 +15,7 @@ This README covers installation, running the app, API endpoints, queues/invoices
 Prerequisites:
 
 - PHP 8.x, Composer
+- Laravel 12.x
 - MySQL
 
 Installation (project root):
